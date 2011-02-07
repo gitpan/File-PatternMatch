@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               File-PatternMatch
-version:            0.031
+version:            0.044
 abstract:           parse media information from filenames
 author:
     - Magnus Woldrich <trapd00r@trapd00r.se>

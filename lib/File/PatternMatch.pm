@@ -1,14 +1,18 @@
-#!/usr/bin/perl
 package File::PatternMatch;
-
-use vars qw($VERSION);
-$VERSION = '0.031';
-
-require Exporter;
-@ISA = qw(Exporter);
-our @EXPORT = qw(patternmatch);
-
 use strict;
+
+BEGIN {
+  use Exporter;
+  use vars qw($VERSION @ISA @EXPORT_OK);
+
+  $VERSION = '0.044';
+  @ISA     = qw(Exporter);
+
+  @EXPORT_OK = qw(
+    patternmatch
+  );
+}
+
 use Term::ExtendedColor qw(fg bg);
 
 # Yes, this is extremely fugly.
@@ -36,7 +40,7 @@ our %patterns = (
     dzen  =>  "^fg(#87d700)Documentary^fg()",
     none  =>  "Documentary",
   },
-  'EPL|WWE|UFC|UEFA|Rugby|La\Liga|
+  'EPL|WWE|UFC|UEFA|Rugby|La\.Liga|
   Superleague|Allsvenskan|
   Formula\.Ford'                     => {
     256   =>  fg(145, 'Sport'),
@@ -132,8 +136,7 @@ our %patterns = (
   },
 );
 
-my(undef,undef,undef,undef,undef,$year) = localtime(time);
-$year += 1900;
+my $year = (localtime(time))[5] + 1900;
 
 our %wanted = (
   'Fringe'                     => {
@@ -216,23 +219,23 @@ our %end = (
 );
 
 sub patternmatch {
-  my $fmt = shift // 'plain';
-  chomp(my @files = @_);
+  my $fmt = shift;
+  my @files = @_;
+
+  if( (!defined($fmt)) or ($fmt eq 'plain') ) {
+    $fmt = 'none';
+  }
 
   my %results;
   my $i = 0;
   for my $file(@files) {
-    if( ($fmt == 256) or ($fmt eq 'extended') or ($fmt eq 'plain')) {
-      $file = sprintf("%70.70s", $file);
-    }
-
     for my $keyword(keys(%wanted)) {
       $file =~ s/($keyword)/$wanted{$keyword}->{$fmt}$1$end{$fmt}/gi;
     }
 
     for my $pattern(keys(%patterns)) {
       if($file =~ /$pattern/x) {
-        $results{$i}{$file} = $patterns{$pattern}{$fmt};
+        $results{$i}->{$file} = $patterns{$pattern}->{$fmt};
       }
     }
     $i++;
@@ -240,7 +243,11 @@ sub patternmatch {
   return(\%results);
 }
 
+
 1;
+
+
+__END__
 
 =head1 NAME
 
@@ -259,6 +266,9 @@ File::PatternMatch - parse media information from filenames
 
 =head1 DESCRIPTION
 
+This module was initially written to be used together with L<File::Media::Sort>
+and L<Parse::Flexget>.
+
 B<File::PatternMatch> takes a list of filenames and tries to parse relevant
 information from them. If a filename contains the string 'S01E01' we can safely
 assume it's a new TV show, the first episode from the first season, and thus we
@@ -266,7 +276,7 @@ label it 'New Show'.
 
 There are filters for various music genres, tv shows and music videos.
 
-The labels can be formatted in three ways (output formats):
+The labels can be formatted in three ways;
 
 =head2 plaintext
 
@@ -281,6 +291,10 @@ Colored using extended escape sequences (see L<Term::ExtendedColor>).
 Formatted using the L<dzen2(1)> notation.
 
 =head1 EXPORTS
+
+None by default.
+
+=head1 FUNCTIONS
 
 =head2 patternmatch()
 
@@ -319,20 +333,18 @@ specific patterns. The result might look like:
   magnus@trapd00r.se
   http://japh.se
 
-=head1 REPORTING BUGS
+=head1 CONTRIBUTORS
 
-Report bugs and/or feature requests:
-
-L<https://rt.cpan.org>
-
-L<https://github.com/trapd00r/Foo-Bar/issues>
-
-L<magnus@trapd00r.se>
+None required yet.
 
 =head1 COPYRIGHT
 
-Copyright 2011 Magnus Woldrich <magnus@trapd00r.se>. This program is free
-software; you may redistribute it and/or modify it under the same terms as
-Perl itself.
+Copyright 2010, 2011 the File::PatternMatchs L</AUTHOR> and L</CONTRIBUTORS> as
+listed above.
+
+=head1 LICENSE
+
+This library is free software; you may redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut
